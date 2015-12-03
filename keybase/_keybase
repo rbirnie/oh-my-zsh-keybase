@@ -4,47 +4,76 @@
 # keybase completion, based on cli help text
 # https://github.com/rbirnie/oh-my-zsh-keybase
 
+# The MIT License (MIT)
+#
+# Copyright (c) 2014 David Tiersch
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 local curcontext="$curcontext" state line ret=1
 local -a _command_args
+local -a _global_args
+local -a _subcommands
 
-_arguments -C -A "-v" -A "--version" \
+local IFS=$'\n'
+_global_args=($(keybase advanced | grep '^\s*--' | sed -r 's/^[\t ]*(--[^\t ,]+)( [^\t ,]*)?,? ?(--?[^\t ]+)?[\t ]*(.*)$/(\3)\1[\4]/'))
+
+_arguments -C -A "-v" -A "--version"\
   '(- 1 *)'{-v,--version}'[display version information]' \
   '1: :->cmds' \
+  $_global_args \
   '*:: :->args' && ret=0
 
 case $state in
   cmds)
-    _values "keybase command" \
-    "btc[add a signed cryptocurrency address to your profile]" \
-    "cert[print out the CA cert the client uses to authorize HTTPS connections]" \
-    "dir[sign or verify a directory's contents]" \
-    "config[make an initial configuration file]" \
-    "decrypt[decrypt a file]" \
-    "encrypt[encrypt a message and output to stdout or a file]" \
-    "help[display help]" \
-    "id[Identify a user, but do not accept or reject trust]" \
-    "join[establish a new account on keybase.io]" \
-    "keygen[generate a new PGP public key and optionally push it to the server]" \
-    "list-signatures[list of your non-revoked signatures]" \
-    "list-tracking[list people you are tracking]" \
-    "login[establish a session]" \
-    "logout[logout from the server]" \
-    "pull[pull your public (& private, if possible) key(s) from the server]" \
-    "push[push a PGP key from the client to the server]" \
-    "prove[add a proof of identity]" \
-    "reset[reset the local setup, deleting all local cached state]" \
-    "revoke[revoke the currently active PGP keys]" \
-    "revoke-signatures[revoke a proof or signature]" \
-    "search[search all users]" \
-    "sign[sign a message]" \
-    "status[print current status]" \
-    "switch[switch to a different user, and nuke the current state]" \
-    "track[verify a user's authenticity and optionally track them]" \
-    "untrack[untrack this user]" \
-    "update[update the keybase client software]" \
-    "verify[verify a file]" \
-    "version[output version information about this client]"
-    ret=0
+    _subcommands=(
+      "btc:add a signed cryptocurrency address to your profile"
+      "cert:print out the CA cert the client uses to authorize HTTPS connections"
+      "dir:sign or verify a directory's contents"
+      "config:make an initial configuration file"
+      "decrypt:decrypt a file"
+      "encrypt:encrypt a message and output to stdout or a file"
+      "help:display help"
+      "id:Identify a user, but do not accept or reject trust"
+      "join:establish a new account on keybase.io"
+      "keygen:generate a new PGP public key and optionally push it to the server"
+      "list-signatures:list of your non-revoked signatures"
+      "list-tracking:list people you are tracking"
+      "login:establish a session"
+      "logout:logout from the server"
+      "pull:pull your public (& private, if possible) key(s) from the server"
+      "push:push a PGP key from the client to the server"
+      "prove:add a proof of identity"
+      "reset:reset the local setup, deleting all local cached state"
+      "revoke:revoke the currently active PGP keys"
+      "revoke-signatures:revoke a proof or signature"
+      "search:search all users"
+      "sign:sign a message"
+      "status:print current status"
+      "switch:switch to a different user, and nuke the current state"
+      "track:verify a user's authenticity and optionally track them"
+      "untrack:untrack this user"
+      "update:update the keybase client software"
+      "verify:verify a file"
+      "version:output version information about this client"
+    )
+    _describe -t subcommands 'Keybase subcommands' _subcommands && ret=0
     ;;
   args)
     case $line[1] in
@@ -286,7 +315,6 @@ esac
 
 _arguments \
   $_command_args \
-  '(-h)'--help'[Show help message and exit.]' \
-  &&  return 0
+  && ret=0
 
 return ret
