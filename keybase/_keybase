@@ -17,31 +17,29 @@ case $state in
     _values "keybase command" \
     "btc[add a signed cryptocurrency address to your profile]" \
     "cert[print out the CA cert the client uses to authorize HTTPS connections]" \
-    "dir[sign or verify a directory's contents]" \
+    "ctl[Control the background keybase service]" \
     "config[make an initial configuration file]" \
     "decrypt[decrypt a file]" \
+    "deprovision[Revoke the current device, log out, and delete local state]" \
+    "device[Manage your devices]" \
     "encrypt[encrypt a message and output to stdout or a file]" \
     "help[display help]" \
     "id[Identify a user, but do not accept or reject trust]" \
-    "join[establish a new account on keybase.io]" \
-    "keygen[generate a new PGP public key and optionally push it to the server]" \
-    "list-signatures[list of your non-revoked signatures]" \
     "list-tracking[list people you are tracking]" \
+    "list-trackers[list trackers]" \
     "login[establish a session]" \
     "logout[logout from the server]" \
-    "pull[pull your public (& private, if possible) key(s) from the server]" \
-    "push[push a PGP key from the client to the server]" \
+    "paperkey[Generate paper keys for recovering your account]" \
+    "pgp[Manage keybase PGP keys]" \
+    "ping[Ping the keybase API server]" \
     "prove[add a proof of identity]" \
-    "reset[reset the local setup, deleting all local cached state]" \
-    "revoke[revoke the currently active PGP keys]" \
-    "revoke-signatures[revoke a proof or signature]" \
-    "search[search all users]" \
-    "sign[sign a message]" \
+    "search[Search for keybase users]" \
+    "sigs[Manage signatures]" \
+    "signup[Signup for a new account]" \
     "status[print current status]" \
-    "switch[switch to a different user, and nuke the current state]" \
     "track[verify a user's authenticity and optionally track them]" \
+    "unlock[Unlock local key storage]" \
     "untrack[untrack this user]" \
-    "update[update the keybase client software]" \
     "verify[verify a file]" \
     "version[output version information about this client]"
     ret=0
@@ -52,31 +50,29 @@ case $state in
         _values 'commands' \
           'btc' \
           'cert' \
-          'dir' \
+          'ctl' \
           'config' \
           'decrypt' \
+          'deprovision' \
+          'device' \
           'encrypt' \
           'help' \
           'id' \
-          'join' \
-          'keygen' \
-          'list-signatures' \
           'list-tracking' \
+          'list-trackers' \
           'login' \
           'logout' \
-          'pull' \
-          'push' \
+          'paperkey' \
+          'pgp' \
+          'ping' \
           'prove' \
-          'reset' \
-          'revoke' \
-          'revoke-signatures' \
           'search' \
-          'sign' \
+          'sigs' \
+          'signup' \
           'status' \
-          'switch' \
           'track' \
+          'unlock' \
           'untrack' \
-          'update' \
           'verify' \
           'version' && ret=0
         ;;
@@ -103,64 +99,11 @@ case $state in
           '(--reset-server)--reset-server[reset the server to default]' \
         )
         ;;
-      decrypt)
-        _command_args=(
-          '(--base64)--base64[output result as base64-encoded data]' \
-          '(--track-remote)--track-remote[remotely track by default]' \
-          '(--track-local)--track-local[do not prompt for remote tracking]' \
-          '(--assert)--assert=-[provide an identity assertion]:ASSERT' \
-          '(--batch)--batch[batch-mode without interactivity]' \
-          '(--prompt-remote)--prompt-remote[prompt for remote tracking]' \
-          '(--track)--track[prompt for tracking if necessary]' \
-          '(--no-id)--no-id[do not try to ID the user]' \
-          '(--signed)--signed[assert signed]' \
-          '(--signed-by)--signed-by=-[assert signed by the given user]:SIGNED_BY' \
-          '(--message)--message=-[provide the message on the command line]:MESSAGE' \
-          '(--output)--output=-[output to the given file]:OUTPUT'\
-        )
-        _files
-        ;;
-      dir)
-        _values "dir command" \
-          "sign[sign a directory's contents]" \
-          "verify[verify a directory's contents]"
-        ;;
-      encrypt)
-        _command_args=(
-          '(--track-remote)--track-remote[remotely track by default]' \
-          '(--track-local)--track-local[do not prompt for remote tracking]' \
-          '(--assert)--assert=-[provide an identity assertion]:ASSERT' \
-          '(--batch)--batch[batch-mode without interactivity]' \
-          '(--prompt-remote)--prompt-remote[prompt for remote tracking]' \
-          '(--sign)--sign[sign in addition to encrypting]' \
-          '(--message)--message=-[provide the message on the command line]:MESSAGE' \
-          '(--binary)--binary[output in binary (rather than ASCII/armored)]' \
-          '(--output)--output=-[the output file to write the encryption to]' \
-        )
-        _values "encrypt command" \
-          'them[the username of the receiver]'
-        _files
-        ;;
       id)
         _values "id command" \
           'them[the username to id]'
         _command_args=(
           '(--assert)--assert=-[provide a key assertion]:ASSERT' \
-        )
-        ;;
-      keygen)
-        _command_args=(
-          '(--push)--push[true if we should push]' \
-          '(--secret)--secret[push the secret key to the server]' \
-          '(--update)--update[update the public key with new key fields]' \
-        )
-        ;;
-      list-signatures)
-        _command_args=(
-          '(--revoked)--revoked[show revoked signatures too]' \
-          '(--verbose)--verbose[a full dump, with more gory details]' \
-          '(--json)--json[output in json format; default is simple text list]' \
-          '(--type)--type=-[the type of signatures to output; choose from "track","proof","currency","self"; all by default]:TYPE' \
         )
         ;;
       list-tracking)
@@ -171,27 +114,34 @@ case $state in
         _values "list-tracking" \
           'filter[a regex to filter by]'
         ;;
+      list-trackers)
+        _command_args=(
+			    '(--uid)--uid[Load user by UID]' \
+			    '(--verbose)--verbose[A full dump, with more gory details]' \
+			    '(--json)--json[output as JSON (default is text)]' \
+			    '(--headers)--headers[show column headers]' \
+			  )
+        _values "list-trackers" \
+			    'filter[a regex to filter by]'
+		    ;;
       login)
         _command_args=(
           '(--no-key-pull)--no-key-pull[do not pull secret key from server]' \
         )
         ;;
-      pull)
-        _command_args=(
-          '(--force)--force[force repull from server even if it is already stored locally]' \
-        )
-        ;;
-      push)
-        _command_args=(
-          '(--gen)--gen[generate a new key]' \
-          '(--show-public-only-keys)--show-public-only-keys[Allow picking of public keys for which no secret key is available (not recommended)]' \
-          '(--skip-add-email)--skip-add-email[Skip the prompt asking if we want to store email to key; do not do it]' \
-          '(--add-email)--add-email[Add email to key by default, if needed]' \
-          '(--secret)--secret[push the secret key to the server]' \
-          '(--update)--update[update the public key with new key fields]' \
-        )
-        _values "push command" \
-          'search[search parameter to find the right key]'
+      pgp)
+        _values "command" \
+          'gen[Generate a new PGP key and write to local secret keychain]' \
+          'pull[Download the latest PGP keys for people you track]' \
+          'update[Update your public PGP keys on keybase with those exported from the local GPG keyring]' \
+          'select[Select a key as your own and register the public half with the server]' \
+          'sign[PGP sign a document]' \
+          'encrypt[PGP encrypt messages or files for keybase users]' \
+          'decrypt[PGP decrypt messages or files for keybase users]' \
+          'verify[PGP verify message or file signatures for keybase users]' \
+          'export[Export a PGP key from keybase]' \
+          'import[Import a PGP key into keybase]' \
+          'drop[Drop Keybases use of a PGP key]' \
         ;;
       prove)
         _command_args=(
@@ -203,31 +153,22 @@ case $state in
           'service[the name of service; can be one of: {twitter,github,web,dns,reddit,coinbase,hackernews}]' \
           'remote_name[username or hostname at that service]'
         ;;
-      reset|revoke|switch)
-        _command_args=(
-          '(--force)--force[do not prompt for approval; force it]' \
-        )
-        ;;
-      revoke-signatures)
-        _command_args=(
-          '(--seqno)--seqno[specify signature as a sequence number]' \
-        )
-        ;;
       search)
         _command_args=(
-          '(--verbose)--verbose[a full dump, with more gory details]' \
           '(--json)--json[output in json format; default is simple text list]' \
         )
         ;;
-      sign)
+      sigs)
+        _values "command" \
+          'list[list signatures]' \
+          'revoke' \
+        ;;
+      signup)
         _command_args=(
-          '(--message)--message=-[provide the message on the command line]:MESSAGE' \
-          '(--binary)--binary[output in binary (rather than ASCII/armored)]' \
-          '(--clearsign)--clearsign[make a clear signature]' \
-          '(--detach-sign)--detach-sign[make a detached signature]' \
-          '(--output)--output=-[specify an output file]:OUTPUT:_files' \
+        '(--invite-code)--invite-code[Specify an invite code]' \
+        '(--email)--email[specify an account email]' \
+        '(--username)--username[specify a username]' \
         )
-        _files
         ;;
       status)
         _command_args=(
@@ -253,32 +194,6 @@ case $state in
         )
         _values "untrack command" \
           'them[the username of the user to untrack]'
-        ;;
-      update)
-        _command_args=(
-          '(--npm)--npm=-[an alternate path for NPM]:NPM' \
-          '(--url)--url=-[specify a URL prefix for fetching]:URL' \
-          '(--skip-cleanup)--skip-cleanup[Do not cleanup temporary stuff after install]' \
-          '(--cmd)--cmd=-[the command to run]:CMD' \
-          '(--prefix)--prefix=-[the prefix to install to]:PREFIX' \
-          '(--global)--global[install globally; do not try to guess prefix]' \
-        )
-        ;;
-      verify)
-        _command_args=(
-          '(--base64)--base64[output result as base64-encoded data]' \
-          '(--track-remote)--track-remote[remotely track by default]' \
-          '(--track-local)--track-local[do not prompt for remote tracking]' \
-          '(--assert)--assert=-[provide an identity assertion]:ASSERT' \
-          '(--batch)--batch[batch-mode without interactivity]' \
-          '(--prompt-remote)--prompt-remote[prompt for remote tracking]' \
-          '(--track)--track[prompt for tracking if necessary]' \
-          '(--no-id)--no-id[do not try to ID the user]' \
-          '(--signed)--signed[assert signed]' \
-          '(--signed-by)--signed-by=-[assert signed by the given user]:SIGNED_BY' \
-          '(--message)--message=-[provide the message on the command line]:MESSAGE' \
-        )
-        _files
         ;;
     esac
     ;;
